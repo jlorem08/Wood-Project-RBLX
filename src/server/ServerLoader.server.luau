@@ -43,7 +43,16 @@ local function startInit(): ()
 		local requiredModule = require(module) :: requiredModule
 
 		task.spawn(function()
-			requiredModule.init()
+			local success = pcall(function()
+				requiredModule.init()
+			end)
+
+			if not success then
+				warn("[SERVER]: There was an issue initializing module " .. module.Name)
+			else
+				print("[SERVER]: Successfully initialized module" .. module.Name)
+			end
+
 			initializedModules[module.Name] = requiredModule
 		end)
 	end
@@ -56,12 +65,12 @@ end
 local function startRun(): ()
 	for moduleName, module in pairs(initializedModules) do
 		task.spawn(function()
-			local success, err = pcall(function()
+			local success = pcall(function()
 				module.run()
 			end)
 
 			if not success then
-				warn("There was an issue starting module " .. moduleName .. ": " .. err)
+				warn("[SERVER]: There was an issue starting module " .. moduleName)
 			else
 				print("[SERVER]: Successfully started module" .. moduleName)
 			end
@@ -71,7 +80,7 @@ end
 
 local function startup()
 	if not MODULES then
-		error("Could not find modules folder in ServerScriptService.")
+		error("[SERVER]: Could not find modules folder in ServerScriptService.")
 		return
 	end
 
