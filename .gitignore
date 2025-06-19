@@ -4,3 +4,9 @@
 # Roblox Studio lock files
 /*.rbxlx.lock
 /*.rbxl.lock
+
+# misc
+selene.toml
+aftman.toml
+default.project.json
+sourcemap.json
