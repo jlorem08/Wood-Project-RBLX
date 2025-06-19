@@ -34,7 +34,7 @@ local function startInit(): ()
 
 	for _, module in ipairs(MODULES:GetChildren()) do
 		if not module:IsA("ModuleScript") then
-			error("Non-ModuleScript item found in expected modules folder.")
+			error("Non-ModuleScript item found in expected modules folder: " .. module.Name)
 			return
 		end
 
@@ -53,7 +53,21 @@ local function startInit(): ()
 	until countToExpect == #MODULES:GetChildren()
 end
 
-local function startRun(): () end
+local function startRun(): ()
+	for moduleName, module in pairs(initializedModules) do
+		task.spawn(function()
+			local success, err = pcall(function()
+				module.run()
+			end)
+
+			if not success then
+				warn("There was an issue starting module " .. moduleName .. ": " .. err)
+			else
+				print("[SERVER]: Successfully started module" .. moduleName)
+			end
+		end)
+	end
+end
 
 local function startup()
 	if not MODULES then
