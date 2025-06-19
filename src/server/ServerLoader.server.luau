@@ -24,16 +24,18 @@ local MODULES: Folder = SERVER:FindFirstChild("ServerModules") :: Folder
 ---------------
 -- VARIABLES --
 ---------------
-local initializedModules = {} :: { [string]: requiredModule }
+local initializedModules = {} :: { [string]: requiredModule } -- used to avoid having to require a module twice
 
 ---------------
 -- FUNCTIONS --
 ---------------
+
+-- initialize all modules in the modules folder
 local function startInit(): ()
-	local countToExpect = 0
+	local countToExpect = 0 -- number of modules that should be waited for until thread resumes
 
 	for _, module in ipairs(MODULES:GetChildren()) do
-		if not module:IsA("ModuleScript") then
+		if not module:IsA("ModuleScript") then -- verify instance is a module script
 			error("Non-ModuleScript item found in expected modules folder: " .. module.Name)
 			return
 		end
@@ -42,7 +44,7 @@ local function startInit(): ()
 
 		local requiredModule = require(module) :: requiredModule
 
-		task.spawn(function()
+		task.spawn(function() -- allow for asynchronous initializations
 			local success = pcall(function()
 				requiredModule.init()
 			end)
@@ -53,18 +55,19 @@ local function startInit(): ()
 				print("[SERVER]: Successfully initialized module" .. module.Name)
 			end
 
-			initializedModules[module.Name] = requiredModule
+			initializedModules[module.Name] = requiredModule -- add to initialized modules dictionary
 		end)
 	end
 
 	repeat
-		task.wait()
+		task.wait() -- pause the thread until all modules are initialized
 	until countToExpect == #MODULES:GetChildren()
 end
 
+-- run all modules in the modules folder that were able to be initialized
 local function startRun(): ()
 	for moduleName, module in pairs(initializedModules) do
-		task.spawn(function()
+		task.spawn(function() -- allow for asynchronous running
 			local success = pcall(function()
 				module.run()
 			end)
@@ -78,6 +81,7 @@ local function startRun(): ()
 	end
 end
 
+-- start the main process of initializing and running
 local function startup()
 	if not MODULES then
 		error("[SERVER]: Could not find modules folder in ServerScriptService.")
