@@ -40,8 +40,6 @@ local function startInit(): ()
 			return
 		end
 
-		countToExpect += 1
-
 		local requiredModule = require(module) :: requiredModule
 
 		task.spawn(function() -- allow for asynchronous initializations
@@ -51,10 +49,12 @@ local function startInit(): ()
 
 			if not success then
 				warn("[SERVER]: There was an issue initializing module " .. module.Name)
+				return
 			else
 				print("[SERVER]: Successfully initialized module" .. module.Name)
 			end
 
+			countToExpect += 1
 			initializedModules[module.Name] = requiredModule -- add to initialized modules dictionary
 		end)
 	end
